@@ -1,8 +1,10 @@
+### .: Fork with verified support for PHP 7.2/3/4/ & 8.0/1/2 :.
+
 # JOSE
 
 PHP JOSE (Javascript Object Signing and Encryption) Implementation
 
-[![Build Status](https://travis-ci.org/nov/jose-php.png?branch=master)](https://travis-ci.org/nov/jose-php)
+[![codecov](https://codecov.io/github/maksimovic/jose-php/graph/badge.svg?token=OJY9BDDILN)](https://codecov.io/github/maksimovic/jose-php)
 
 ## Requirements
 
