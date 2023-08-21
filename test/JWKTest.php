@@ -1,25 +1,35 @@
 <?php
 
-use phpseclib\Crypt\RSA;
-use phpseclib\Crypt\RC2;
+namespace test;
 
-class JOSE_JWK_Test extends JOSE_TestCase {
-    function testConstructWithoutKTY() {
-        $this->setExpectedException('JOSE_Exception_InvalidFormat');
+use JOSE_JWK;
+use JOSE_Exception_UnexpectedAlgorithm;
+
+use phpseclib\Crypt\RC2;
+use phpseclib\Crypt\RSA;
+
+class JWKTest extends JOSETestCase
+{
+    function testConstructWithoutKTY()
+    {
+        $this->expectException('JOSE_Exception_InvalidFormat');
         new JOSE_JWK(array('n' => 'n'));
     }
 
-    function testToString() {
+    function testToString()
+    {
         $jwk = new JOSE_JWK(array('kty' => 'RSA', 'e' => 'e', 'n' => 'n'));
         $this->assertEquals('{"kty":"RSA","e":"e","n":"n","kid":"lPd1Hx7fpYY23pQVKnFvOEtk_jFe5EV8ZISUGTSGA_U"}', $jwk->toString());
     }
 
-    function test__toString() {
+    function test__toString()
+    {
         $jwk = new JOSE_JWK(array('kty' => 'RSA', 'e' => 'e', 'n' => 'n'));
         $this->assertEquals('{"kty":"RSA","e":"e","n":"n","kid":"lPd1Hx7fpYY23pQVKnFvOEtk_jFe5EV8ZISUGTSGA_U"}', sprintf('%s', $jwk));
     }
 
-    function testEncodeRSAPublicKey() {
+    function testEncodeRSAPublicKey()
+    {
         $rsa = new RSA();
         $rsa->loadKey($this->rsa_keys['public']);
         $jwk = JOSE_JWK::encode($rsa);
@@ -29,7 +39,8 @@ class JOSE_JWK_Test extends JOSE_TestCase {
         $this->assertNotContains('d', $jwk->components);
     }
 
-    function testEncodeRSAPrivateKey() {
+    function testEncodeRSAPrivateKey()
+    {
         $rsa = new RSA();
         $rsa->loadKey($this->rsa_keys['private']);
         $jwk = JOSE_JWK::encode($rsa);
@@ -39,7 +50,8 @@ class JOSE_JWK_Test extends JOSE_TestCase {
         $this->assertEquals('S3xQjvVh-PJv9tK_gHeJB0nWBx6bewWdakI7Pm9nR30ZNKYtQc15eoESczhjsPe3z_DGJebohZmmx4bzNlQSFBzj4W1TFXFM05oqSi7DfV1jZyzlNSYKsjT0P4gBoziNwc9uDLPWNUFPo_6gF7rJo2r1chix-Oftpt2Sc0SsdyEESBMR5REMccX5gZIhN-DUTN4gt9GNeDRy9h-gNFxgNNtt17HzEg52gbl3UnEuuPXE2wcctE1nxT3WDdtVqb6nbaNfxLiaAWaL2uYBvU2_AvKu1b7VEPmP9pTEMyriVzh4Jb2ZtIUpna518M044GPKs1TgMHSAxpOaQvnpar9lrQ', $jwk->components['d']);
     }
 
-    function testEncodeWithExtraComponents() {
+    function testEncodeWithExtraComponents()
+    {
         $rsa = new RSA();
         $rsa->loadKey($this->rsa_keys['private']);
         $jwk = JOSE_JWK::encode($rsa, array(
@@ -50,13 +62,15 @@ class JOSE_JWK_Test extends JOSE_TestCase {
         $this->assertEquals('sig', $jwk->components['use']);
     }
 
-    function testEncodeWithUnexpectedAlg() {
+    function testEncodeWithUnexpectedAlg()
+    {
         $key = new RC2();
-        $this->setExpectedException('JOSE_Exception_UnexpectedAlgorithm');
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
         JOSE_JWK::encode($key);
     }
 
-    function testDecodeRSAPublicKey() {
+    function testDecodeRSAPublicKey()
+    {
         $components = array(
             'kty' => 'RSA',
             'e' => 'AQAB',
@@ -70,29 +84,32 @@ class JOSE_JWK_Test extends JOSE_TestCase {
         );
     }
 
-    function testDecodeRSAPrivateKey() {
+    function testDecodeRSAPrivateKey()
+    {
         $components = array(
             'kty' => 'RSA',
             'e' => 'AQAB',
             'n' => 'x9vNhcvSrxjsegZAAo4OEuoZOV_oxINEeWneJYczS80_bQ1J6lSSJ81qecxXAzCLPlvsFoP4eeUNXSt_G7hP7SAM479N-kY_MzbihJ5LRY9sRzLbQTMeqsmDAmmQe4y3Ke3bvd70r8VOmo5pqM3IPLGwBkTRTQmyRsDQArilg6WtxDUgy5ol2STHFA8E1iCReh9bck8ZaLxzVhYRXZ0nuOKWGRMppocPlp55HVohOItUZh7uSCchLcVAZuhTTNaDLtLIJ6G0yNJvfEieJUhA8wGBoPhD3LMQwQMxTMerpjZhP_qjm6GgeWpKf-iVil86_PSy_z0Vw06_rD0sfXPtlQ',
             'd' => 'S3xQjvVh-PJv9tK_gHeJB0nWBx6bewWdakI7Pm9nR30ZNKYtQc15eoESczhjsPe3z_DGJebohZmmx4bzNlQSFBzj4W1TFXFM05oqSi7DfV1jZyzlNSYKsjT0P4gBoziNwc9uDLPWNUFPo_6gF7rJo2r1chix-Oftpt2Sc0SsdyEESBMR5REMccX5gZIhN-DUTN4gt9GNeDRy9h-gNFxgNNtt17HzEg52gbl3UnEuuPXE2wcctE1nxT3WDdtVqb6nbaNfxLiaAWaL2uYBvU2_AvKu1b7VEPmP9pTEMyriVzh4Jb2ZtIUpna518M044GPKs1TgMHSAxpOaQvnpar9lrQ'
         );
-        $this->setExpectedException('JOSE_Exception_UnexpectedAlgorithm');
+        $this->expectException(JOSE_Exception_UnexpectedAlgorithm::class);
         JOSE_JWK::decode($components);
     }
 
-    function testDecodeWithUnexpectedAlg() {
+    function testDecodeWithUnexpectedAlg()
+    {
         $components = array(
             'kty' => 'EC',
             'crv' => 'crv',
             'x' => 'x',
             'y' => 'y'
         );
-        $this->setExpectedException('JOSE_Exception_UnexpectedAlgorithm');
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
         JOSE_JWK::decode($components);
     }
 
-    function testThumbprint() {
+    function testThumbprint()
+    {
         $rsa = new RSA();
         $rsa->loadKey($this->rsa_keys['public']);
         $jwk = JOSE_JWK::encode($rsa);
