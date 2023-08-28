@@ -6,6 +6,10 @@ PHP JOSE (Javascript Object Signing and Encryption) Implementation
 
 [![codecov](https://codecov.io/github/maksimovic/jose-php/graph/badge.svg?token=OJY9BDDILN)](https://codecov.io/github/maksimovic/jose-php)
 
+## Installation
+
+`composer install maksimovic/jose-php`
+
 ## Requirements
 
 phpseclib is required.
