@@ -128,4 +128,240 @@ class JWETest extends JOSETestCase
             "enc" => "A128CBC-HS256"
         ), $jwe->header);
     }
+
+    function testConstructFromJWT()
+    {
+        $jwt = new JOSE_JWT(array('foo' => 'bar'));
+        $jwe = new JOSE_JWE($jwt);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertEquals($jwt->toString(), $decrypted->plain_text);
+    }
+
+    function testConstructFromNull()
+    {
+        $jwe = new JOSE_JWE();
+        $this->assertArrayNotHasKey('typ', $jwe->header);
+    }
+
+    function testEncryptDir_A256CBCHS512()
+    {
+        $secret = Random::string(512 / 8);
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe = $jwe->encrypt($secret, 'dir', 'A256CBC-HS512');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $this->assertEquals($this->plain_text, $jwe_decoded->decrypt($secret)->plain_text);
+    }
+
+    function testEncryptWithJWKSetsKid()
+    {
+        $rsa = new \phpseclib\Crypt\RSA();
+        $rsa->loadKey($this->rsa_keys['public']);
+        $jwk = \JOSE_JWK::encode($rsa, array('kid' => 'test-key-id'));
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($jwk);
+        $this->assertEquals('test-key-id', $jwe->header['kid']);
+    }
+
+    function testEncryptWithCryptRSA()
+    {
+        $rsa = new \phpseclib\Crypt\RSA();
+        $rsa->loadKey($this->rsa_keys['public']);
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($rsa);
+        $segments = explode('.', $jwe->toString());
+        $this->assertEquals(5, count($segments));
+    }
+
+    function testEncryptA256KW()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe->encrypt($this->rsa_keys['public'], 'A256KW');
+    }
+
+    function testEncryptECDHES()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe->encrypt($this->rsa_keys['public'], 'ECDH-ES');
+    }
+
+    function testEncryptECDHES_A128KW()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe->encrypt($this->rsa_keys['public'], 'ECDH-ES+A128KW');
+    }
+
+    function testEncryptECDHES_A256KW()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe->encrypt($this->rsa_keys['public'], 'ECDH-ES+A256KW');
+    }
+
+    function testDecryptRSAOAEP_A128CBCHS256()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public'], 'RSA-OAEP');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertEquals($this->plain_text, $decrypted->plain_text);
+    }
+
+    function testDecryptRSAOAEP_A256CBCHS512()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public'], 'RSA-OAEP', 'A256CBC-HS512');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertEquals($this->plain_text, $decrypted->plain_text);
+    }
+
+    function testDecryptRSA15_A256CBCHS512()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public'], 'RSA1_5', 'A256CBC-HS512');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertEquals($this->plain_text, $decrypted->plain_text);
+    }
+
+    function testDecryptWithCryptRSA()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $rsa = new \phpseclib\Crypt\RSA();
+        $rsa->loadKey($this->rsa_keys['private']);
+        $decrypted = $jwe_decoded->decrypt($rsa);
+        $this->assertEquals($this->plain_text, $decrypted->plain_text);
+    }
+
+    function testDecryptDir_A128CBCHS256()
+    {
+        $secret = Random::string(256 / 8);
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe = $jwe->encrypt($secret, 'dir');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($secret);
+        $this->assertEquals($this->plain_text, $decrypted->plain_text);
+    }
+
+    function testDecryptDir_A256CBCHS512()
+    {
+        $secret = Random::string(512 / 8);
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe = $jwe->encrypt($secret, 'dir', 'A256CBC-HS512');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($secret);
+        $this->assertEquals($this->plain_text, $decrypted->plain_text);
+    }
+
+    function testDecryptA128KW()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        // Manually override the header to simulate an A128KW token
+        $jwe_decoded->header['alg'] = 'A128KW';
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe_decoded->decrypt($this->rsa_keys['private']);
+    }
+
+    function testDecryptUnknownAlgorithm()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $jwe_decoded->header['alg'] = 'Unknown';
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe_decoded->decrypt($this->rsa_keys['private']);
+    }
+
+    function testDecryptInvalidAuthenticationTag()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        // Corrupt the authentication tag
+        $jwe_decoded->authentication_tag = 'invalid';
+        $this->expectException('JOSE_Exception_UnexpectedAlgorithm');
+        $jwe_decoded->decrypt($this->rsa_keys['private']);
+    }
+
+    function testEncryptReturnsJWE()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $result = $jwe->encrypt($this->rsa_keys['public']);
+        $this->assertInstanceOf('JOSE_JWE', $result);
+    }
+
+    function testDecryptReturnsJWE()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $result = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertInstanceOf('JOSE_JWE', $result);
+    }
+
+    function testEncryptFromJWTEncryptMethod()
+    {
+        $jwt = new JOSE_JWT(array('foo' => 'bar'));
+        $jwe = $jwt->encrypt($this->rsa_keys['public'], 'RSA-OAEP', 'A256CBC-HS512');
+        $this->assertInstanceOf('JOSE_JWE', $jwe);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertEquals($jwt->toString(), $decrypted->plain_text);
+    }
+
+    function testHeaderDoesNotContainTyp()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $this->assertArrayNotHasKey('typ', $jwe->header);
+    }
+
+    function testDirEncryptedKeyIsEmpty()
+    {
+        $secret = Random::string(256 / 8);
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe = $jwe->encrypt($secret, 'dir');
+        $this->assertEmpty($jwe->jwe_encrypted_key);
+    }
+
+    function testToStringHasFiveSegments()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $segments = explode('.', $jwe->toString());
+        $this->assertEquals(5, count($segments));
+        // Verify each segment is non-empty except possibly encrypted key
+        $this->assertNotEmpty($segments[0]); // header
+        $this->assertNotEmpty($segments[1]); // encrypted key
+        $this->assertNotEmpty($segments[2]); // IV
+        $this->assertNotEmpty($segments[3]); // cipher text
+        $this->assertNotEmpty($segments[4]); // auth tag
+    }
+
+    function testDecodeHeaderValues()
+    {
+        $jwe = new JOSE_JWE($this->plain_text);
+        $jwe->encrypt($this->rsa_keys['public'], 'RSA-OAEP', 'A256CBC-HS512');
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $this->assertEquals('RSA-OAEP', $jwe_decoded->header['alg']);
+        $this->assertEquals('A256CBC-HS512', $jwe_decoded->header['enc']);
+    }
+
+    function testRoundTripLongPlainText()
+    {
+        $long_text = str_repeat('The quick brown fox jumps over the lazy dog. ', 100);
+        $jwe = new JOSE_JWE($long_text);
+        $jwe->encrypt($this->rsa_keys['public']);
+        $jwe_decoded = JOSE_JWT::decode($jwe->toString());
+        $decrypted = $jwe_decoded->decrypt($this->rsa_keys['private']);
+        $this->assertEquals($long_text, $decrypted->plain_text);
+    }
 }

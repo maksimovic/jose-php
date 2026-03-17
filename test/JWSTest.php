@@ -316,9 +316,16 @@ class JWSTest extends JOSETestCase
             $this->plain_jwt->sign($this->rsa_keys['public'], 'HS256')->toString()
         );
 
-        $this->expectException(\PHPUnit\Framework\Error\Notice::class);
-        $this->expectExceptionMessage('Invalid signature');
+        set_error_handler(function ($errno, $errstr) {
+            throw new \RuntimeException($errstr, $errno);
+        }, E_NOTICE | E_USER_NOTICE);
 
-        $malformed_jwt->verify($this->rsa_keys['public'], 'RS256');
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Invalid signature');
+            $malformed_jwt->verify($this->rsa_keys['public'], 'RS256');
+        } finally {
+            restore_error_handler();
+        }
     }
 }

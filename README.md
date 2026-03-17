@@ -1,19 +1,21 @@
-### .: Fork with verified support for PHP 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.4
-
 # JOSE
 
-PHP JOSE (Javascript Object Signing and Encryption) Implementation
+> **Fork Notice:** This is a maintained fork of the abandoned [`gree/jose`](https://github.com/nov/jose-php) package. Updated with verified support for PHP 7.2 through 8.5.
 
+PHP JOSE (JSON Object Signing and Encryption) Implementation
+
+[![CI](https://github.com/maksimovic/jose-php/actions/workflows/ci.yml/badge.svg)](https://github.com/maksimovic/jose-php/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/maksimovic/jose-php/graph/badge.svg?token=OJY9BDDILN)](https://codecov.io/github/maksimovic/jose-php)
 
 ## Installation
 
-`composer install maksimovic/jose-php`
+```sh
+composer require maksimovic/jose-php
+```
 
 ## Requirements
 
-phpseclib is required.
-http://phpseclib.sourceforge.net
+PHP 7.2 or later. [phpseclib](https://github.com/phpseclib/phpseclib) v2 is required (installed automatically via Composer).
 
 ## Example
 
@@ -47,7 +49,7 @@ $jwt = new JOSE_JWT(array(
 $jws = $jwt->sign($private_key, 'RS256');
 ```
 
-NOTE: `$private_key` can be `phpseclib\Crypt\RSA` instance.
+NOTE: `$private_key` can be a `phpseclib\Crypt\RSA` instance.
 
 #### Verification
 
@@ -58,7 +60,7 @@ $jws = JOSE_JWT::decode($jwt_string);
 $jws->verify($public_key, 'RS256');
 ```
 
-NOTE: `$public_key` can be `JOSE_JWK` or `phpseclib\Crypt\RSA` instance.
+NOTE: `$public_key` can be a `JOSE_JWK` or `phpseclib\Crypt\RSA` instance.
 
 ### JWE
 
@@ -104,7 +106,6 @@ JOSE_JWK::encode($private_key); # => JOSE_JWK instance
 ##### RSA Public Key
 
 ```php
-# public key
 $components = array(
     'kty' => 'RSA',
     'e' => 'AQAB',
@@ -117,15 +118,15 @@ JOSE_JWK::decode($components); # => phpseclib\Crypt\RSA instance
 
 Not supported.
 
-## Run Test
+## Development
 
-```bash
-git clone git://github.com/maksimovic/jose-php.git
+```sh
+git clone https://github.com/maksimovic/jose-php.git
 cd jose-php
 composer install
 vendor/bin/phpunit test
 ```
 
-## Copyright
+## License
 
-Copyright &copy; 2013 Nov Matake & GREE Inc. See LICENSE for details.
+MIT. Copyright &copy; 2013 Nov Matake & GREE Inc. See LICENSE for details.
