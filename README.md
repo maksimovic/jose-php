@@ -1,6 +1,6 @@
 # JOSE
 
-> **Fork Notice:** This is a maintained fork of the abandoned [`gree/jose`](https://github.com/nov/jose-php) package. Updated with verified support for PHP 7.2 through 8.5.
+> **Fork Notice:** This is a maintained fork of the abandoned [`gree/jose`](https://github.com/nov/jose-php) package. Updated with verified support for PHP 7.2 through 8.6.
 
 PHP JOSE (JSON Object Signing and Encryption) Implementation
 
