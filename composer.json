@@ -40,5 +40,12 @@
     "psr-4": {
       "test\\" : "test/"
     }
+  },
+  "config": {
+    "audit": {
+      "ignore": {
+        "PKSA-12sz-bcny-pk4m": "Affects phpseclib 3 EC code only; 2.x has none and uses libsodium for curve25519"
+      }
+    }
   }
 }
