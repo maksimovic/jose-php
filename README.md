@@ -13,9 +13,21 @@ PHP JOSE (JSON Object Signing and Encryption) Implementation
 composer require maksimovic/jose-php
 ```
 
+Composer 2.9 and later refuse to install phpseclib 2.x, because GitHub's copy of advisory [GHSA-q97c-8qh3-fpc6](https://github.com/advisories/GHSA-q97c-8qh3-fpc6) (PKSA-12sz-bcny-pk4m on Packagist) lists every version below 3.0.57. The problem it describes is in phpseclib 3's elliptic-curve code, which 2.x doesn't have, and [phpseclib's own copy](https://github.com/phpseclib/phpseclib/security/advisories/GHSA-q97c-8qh3-fpc6) of the advisory starts at 3.0.0. Until GitHub's copy is corrected, ignore the advisory in your project's `composer.json`:
+
+```json
+"config": {
+    "audit": {
+        "ignore": {
+            "PKSA-12sz-bcny-pk4m": "Affects phpseclib 3 EC code only; 2.x has none and uses libsodium for curve25519"
+        }
+    }
+}
+```
+
 ## Requirements
 
-PHP 7.2 or later. [phpseclib](https://github.com/phpseclib/phpseclib) v2 is required (installed automatically via Composer).
+PHP 7.2 or later. [phpseclib](https://github.com/phpseclib/phpseclib) 2.0.56 or later in the 2.x line is required (installed automatically via Composer).
 
 ## Example
 
